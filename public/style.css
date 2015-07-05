@@ -1,0 +1,24 @@
+#up-file {
+	margin: 60px;
+}
+
+#up-tc {
+	margin: 60px;
+}
+
+#run {
+	width: 100px;
+	margin: 60px;
+	padding: 6px;
+}
+
+.navbar-right a{
+	color: white;
+}
+
+.CodeMirror {
+	height: 600px;
+	width: 600px;
+	margin: 32px;
+	overflow: hidden;
+}
