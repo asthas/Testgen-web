@@ -45,26 +45,26 @@ var output = '';
 
 
 
-function deleteTestCases() {
-	exec(['rm programs/*.tc'])
+function deleteTestCases(userdir) {
+	exec(['rm programs/' + userdir +'/*.tc']);
 }
 
 function endsWithTC(file) {
 	return (file.indexOf('.tc', file.length - '.tc'.length) !== -1);
 }
 
-function searchTestcaseFile(res) {
-	var ls = exec(['ls programs'], function(err, stdout, stderr){
+function searchTestcaseFile(res, userdir) {
+	var ls = exec(['ls programs/'+ userdir], function(err, stdout, stderr){
 		var files = stdout.split('\n');
 		var tc = files.filter(endsWithTC);
-		displayTestcases(tc[0], res);
+		displayTestcases(tc[0], res, userdir);
 	});
 }
 
 
 
-function displayTestcases(tc, res) {
-	fs.readFile('./programs/' + tc, 'utf8', function(err, data){
+function displayTestcases(tc, res, userdir) {
+	fs.readFile('./programs/' + userdir + '/' + tc, 'utf8', function(err, data){
 		if(err)
 			console.log(err);
 		res.send(data);
@@ -72,14 +72,14 @@ function displayTestcases(tc, res) {
 }
 
 
-function compileTemp() {
-	var compile = exec(['clang programs/temp.c -o programs/temp.out'])
+function compileTemp(userdir) {
+	var compile = exec(['clang programs/temp.c -o programs/' + userdir + '/temp.out']);
 }
 
 
-function applyTestGen(res) {
-	deleteTestCases();
-	var testgen = exec(['./Testgen.sh programs/temp.c main'], function(err, stdout, stderr){
+function applyTestGen(res, userdir) {
+	deleteTestCases(userdir);
+	var testgen = exec(['./Testgen.sh programs/' + userdir + '/temp.c main' + '> programs/' + userdir + '/output'], function(err, stdout, stderr){
 		//output += stdout;
 		//res.send(output);
 		fs.readFile('./src/src/coverage.txt', 'utf8', function(err, data){
@@ -103,20 +103,25 @@ function applyTestGen(res) {
 
 
 app.post('/filecontent', function(req, res) {
+	var user = req.user;
+	var userdir = user._id;
+	exec(['mkdir' + 'programs/' + userdir]);
 	var data = req.body;
 
 	var file = data.content;
 
-	fs.writeFile(__dirname + "/programs/temp.c", file, function(err){
+	fs.writeFile(__dirname + "/programs/" + userdir + "/temp.c", file, function(err){
 		if(err)
 			console.log(err);
-		compileTemp();
-		applyTestGen(res);
+		compileTemp(userdir);
+		applyTestGen(res, userdir);
 	});
 });
 
 app.get('/testCases', function(req, res){
-	searchTestcaseFile(res);
+	var user = req.user;
+	var userdir = user._id;
+	searchTestcaseFile(res, userdir);
 });
 
 
@@ -131,6 +136,8 @@ app.use(function(req, res, next){
 	err.status(404);
 	next(err);
 })
+
+
 
 	
 app.listen(3000, function() {
