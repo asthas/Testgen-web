@@ -57,6 +57,7 @@ function searchTestcaseFile(res, userdir) {
 	var ls = exec(['ls programs/'+ userdir], function(err, stdout, stderr){
 		var files = stdout.split('\n');
 		var tc = files.filter(endsWithTC);
+		console.log(files, tc);
 		displayTestcases(tc[0], res, userdir);
 	});
 }
@@ -79,36 +80,35 @@ function compileTemp(userdir) {
 
 function applyTestGen(res, userdir) {
 	deleteTestCases(userdir);
-	var testgen = exec(['./Testgen.sh programs/' + userdir + '/temp.c main' + '> programs/' + userdir + '/output'], function(err, stdout, stderr){
-		//output += stdout;
-		//res.send(output);
-		fs.readFile('./src/src/coverage.txt', 'utf8', function(err, data){
-			if(err)
-				console.log(err);
-			out = data.split('\n');
-			res.send("Coverage: " + out[0]);
-		});
+	var testgen = exec(['./Testgen.sh programs/' + userdir + '/temp.c main > programs/' + userdir + '/output'], function(err, stdout, stderr){
+		
+		fs.readFile('./programs/' + userdir + '/output', 'utf8', function(err, data){
+			var lines = data.split('\n');
+			var coverages = lines.filter(function(line){
+				return(line.indexOf('COVERAGE') !== -1);
+			});
+			res.send(coverages[coverages.length - 1]);
+		})
+			
 	});
 
-	/* var testgen = exec(['./runner.py'], {maxBuffer:100000*1000000}, function(stdout, stderr, err) {
-		res.send(JSON.stringify(stdout));
-	 });
-	/*var testgen = spawn('./Testgen.sh', ['./programs/temp.c', 'main1']);
-	testgen.stdout.on('data', function(data) {
-		console.log(data.toString());
-	}).on('error', function(code, signal) {
-		console.log(code ,signal)
-	})*/
 }
 
 
 app.post('/filecontent', function(req, res) {
 	var user = req.user;
 	var userdir = user._id;
-	exec(['mkdir' + 'programs/' + userdir]);
+	exec(['mkdir programs/' + userdir]);
 	var data = req.body;
 
 	var file = data.content;
+
+	Account.findById(userdir, function(err, account) {
+		if (!err) {
+		account.files.push(file);
+		account.save();
+		}
+	});
 
 	fs.writeFile(__dirname + "/programs/" + userdir + "/temp.c", file, function(err){
 		if(err)
@@ -116,6 +116,8 @@ app.post('/filecontent', function(req, res) {
 		compileTemp(userdir);
 		applyTestGen(res, userdir);
 	});
+
+	
 });
 
 app.get('/testCases', function(req, res){
@@ -130,12 +132,13 @@ passport.use(new LocalStrategy(Account.authenticate()));
 passport.serializeUser(Account.serializeUser());
 passport.deserializeUser(Account.deserializeUser());
 
-mongoose.connect('mongodb://localhost/login');
+mongoose.connect('mongodb://localhost/Testgen');
 app.use(function(req, res, next){
 	var err = new Error('not found');
 	err.status(404);
 	next(err);
 })
+
 
 
 
@@ -145,3 +148,4 @@ app.listen(3000, function() {
 });
 
 module.exports = app;
+//programs mein to kuch bana hi ni is baar

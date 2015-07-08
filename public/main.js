@@ -53,10 +53,11 @@ function sendToServer(){
 		getTestCases();
 		//displayOutput();
 	});
-	$('#myModal').modal('toggle');
+	
 	$('#Home').hide();
 	$('#Output').addClass('active')
 	$('#Output').show();
+	$('#myModal').modal('toggle');
 }
 
 
