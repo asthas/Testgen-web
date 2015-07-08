@@ -88,25 +88,24 @@ function applyTestGen(res, userdir) {
 				return(line.indexOf('COVERAGE') !== -1);
 			});
 			res.send(coverages[coverages.length - 1]);
-		})
+		});
 			
 	});
 
 }
 
-
 app.post('/filecontent', function(req, res) {
 	var user = req.user;
-	var userdir = user._id;
-	exec(['mkdir programs/' + userdir]);
+	var userdir = user.username;
+	
 	var data = req.body;
 
 	var file = data.content;
 
 	Account.findById(userdir, function(err, account) {
 		if (!err) {
-		account.files.push(file);
-		account.save();
+			account.files.push(file);
+			account.save();
 		}
 	});
 
@@ -122,7 +121,7 @@ app.post('/filecontent', function(req, res) {
 
 app.get('/testCases', function(req, res){
 	var user = req.user;
-	var userdir = user._id;
+	var userdir = user.username;
 	searchTestcaseFile(res, userdir);
 });
 
@@ -148,4 +147,3 @@ app.listen(3000, function() {
 });
 
 module.exports = app;
-//programs mein to kuch bana hi ni is baar

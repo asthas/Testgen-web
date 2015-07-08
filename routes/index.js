@@ -1,8 +1,10 @@
 var express = require('express');
 var passport = require('passport');
 var Account = require('../model/account');
+var exec = require('child_process').exec;
 
 var router = express.Router();
+
 
 
 router.get('/', function(req, res){
@@ -30,6 +32,7 @@ router.post('/register', function(req, res){
 		if(err){
 			return res.render("register", {info: "Sorry. That username already exists. Try again."});
 		}
+		exec(['mkdir programs/' + user.username]);
 		res.redirect('/');
 	});
 });
