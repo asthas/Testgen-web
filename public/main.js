@@ -55,7 +55,7 @@ function sendToServer(){
 	});
 	
 	$('#Home').hide();
-	$('#Output').addClass('active')
+	$('#Output').addClass('active');
 	$('#Output').show();
 	$('#myModal').modal('toggle');
 }

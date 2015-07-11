@@ -9,6 +9,7 @@ var router = express.Router();
 
 router.get('/', function(req, res){
 	if (req.user) {
+		exec(['mkdir programs/' + req.sessionID]);
 		res.render('testgen', {user: req.user});
 	} else {
 		res.render('index', {user: req.user});
@@ -32,7 +33,6 @@ router.post('/register', function(req, res){
 		if(err){
 			return res.render("register", {info: "Sorry. That username already exists. Try again."});
 		}
-		exec(['mkdir programs/' + user.username]);
 		res.redirect('/');
 	});
 });

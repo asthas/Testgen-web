@@ -53,40 +53,72 @@ function endsWithTC(file) {
 	return (file.indexOf('.tc', file.length - '.tc'.length) !== -1);
 }
 
-function searchTestcaseFile(res, userdir) {
+function searchTestcaseFile(res, userdir, userid) {
+	console.log('\n\n\nuserdir', userdir);
+	console.log('\n\n\nuserid', userid);
 	var ls = exec(['ls programs/'+ userdir], function(err, stdout, stderr){
+		
 		var files = stdout.split('\n');
 		var tc = files.filter(endsWithTC);
+		
 		console.log(files, tc);
-		displayTestcases(tc[0], res, userdir);
+		displayTestcases(tc[0], res, userdir, userid);
 	});
 }
 
 
 
-function displayTestcases(tc, res, userdir) {
+function displayTestcases(tc, res, userdir, userid) {
 	fs.readFile('./programs/' + userdir + '/' + tc, 'utf8', function(err, data){
-		if(err)
+		if(err) {
 			console.log(err);
+		}
+		Account.findById(userid, function(err, account){
+			if(!err) {
+				var length = account.cases.length;
+				var currentCase = account.cases[length-1];//created a copy
+				currentCase.output_testcase = data;//augmented 
+				account.cases[account.cases.length-1] = currentCase;
+				account.save();//reflected back the changes
+			}
+		});
 		res.send(data);
 	});
 }
 
 
-function compileTemp(userdir) {
-	var compile = exec(['clang programs/temp.c -o programs/' + userdir + '/temp.out']);
+function compileTemp(userdir, userid, res) {
+	var command = 'clang programs/'+ userdir +'/temp.c -o programs/' + userdir + '/temp.out';
+	console.log('\nCompile command:', command, '\n');
+	var compile = exec([command], function(err, data) {
+		if (!err) {
+			applyTestGen(res, userdir, userid);
+		}
+	});
 }
 
 
-function applyTestGen(res, userdir) {
+function applyTestGen(res, userdir, userid) {
 	deleteTestCases(userdir);
-	var testgen = exec(['./Testgen.sh programs/' + userdir + '/temp.c main > programs/' + userdir + '/output'], function(err, stdout, stderr){
-		
+	var command = './Testgen.sh programs/' + userdir + '/temp.c main';
+	console.log(command);
+	var testgen = exec([command], function(err, stdout, stderr){
+		console.log('\n\n stdout: ', stdout);
 		fs.readFile('./programs/' + userdir + '/output', 'utf8', function(err, data){
-			var lines = data.split('\n');
+			console.log('\n\ndata:', data);
+			var lines = stdout.split('\n');
 			var coverages = lines.filter(function(line){
 				return(line.indexOf('COVERAGE') !== -1);
 			});
+			Account.findById(userid, function(err, account){
+				if(!err)
+					var length = account.cases.length;
+					var currentCase = account.cases[length-1];
+					currentCase.output_coverage = coverages[coverages.length - 1];
+					account.cases[account.cases.length-1] = currentCase;
+					account.save();
+			})
+			console.log(coverages);
 			res.send(coverages[coverages.length - 1]);
 		});
 			
@@ -96,15 +128,17 @@ function applyTestGen(res, userdir) {
 
 app.post('/filecontent', function(req, res) {
 	var user = req.user;
-	var userdir = user.username;
+	var userid = user._id;
+	var userdir = req.sessionID;
 	
 	var data = req.body;
 
 	var file = data.content;
+	var myCase = {input_file: file};
 
-	Account.findById(userdir, function(err, account) {
+	Account.findById(userid, function(err, account) {
 		if (!err) {
-			account.files.push(file);
+			account.cases.push(myCase);
 			account.save();
 		}
 	});
@@ -112,8 +146,8 @@ app.post('/filecontent', function(req, res) {
 	fs.writeFile(__dirname + "/programs/" + userdir + "/temp.c", file, function(err){
 		if(err)
 			console.log(err);
-		compileTemp(userdir);
-		applyTestGen(res, userdir);
+		compileTemp(userdir, userid, res);
+		//applyTestGen(res, userdir, userid);
 	});
 
 	
@@ -121,8 +155,9 @@ app.post('/filecontent', function(req, res) {
 
 app.get('/testCases', function(req, res){
 	var user = req.user;
-	var userdir = user.username;
-	searchTestcaseFile(res, userdir);
+	var userid = user._id;
+	var userdir = req.sessionID; 
+	searchTestcaseFile(res, userdir, userid);
 });
 
 
@@ -132,15 +167,11 @@ passport.serializeUser(Account.serializeUser());
 passport.deserializeUser(Account.deserializeUser());
 
 mongoose.connect('mongodb://localhost/Testgen');
-app.use(function(req, res, next){
-	var err = new Error('not found');
-	err.status(404);
-	next(err);
-})
-
-
-
-
+// app.use(function(req, res, next){
+// 	var err = new Error('not found');
+// 	err.status(404);
+// 	next(err);
+// });
 	
 app.listen(3000, function() {
 	console.log('Serving on 3000');
