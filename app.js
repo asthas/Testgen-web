@@ -7,6 +7,9 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
+var nodemailer = require('nodemailer');
+var mandrillTransport = require('nodemailer-mandrill-transport');
+
 
 var routes = require('./routes/index');
 
@@ -81,9 +84,36 @@ function displayTestcases(tc, res, userdir, userid) {
 				currentCase.output_testcase = data;//augmented 
 				account.cases[account.cases.length-1] = currentCase;
 				account.save();//reflected back the changes
+				sendEmail(account.email, currentCase);
 			}
 		});
 		res.send(data);
+	});
+}
+
+function sendEmail(email, currCase) {
+	console.log("Sending email to", email, 'with content', currCase);
+ 
+	var transport = nodemailer.createTransport(mandrillTransport({
+		auth: {
+			apiKey: 'rOu5LBQuNFHq07ROTmlHjA'
+		}
+	}));
+	
+	var content  = '<h1>Testgen Report</h1><br><h3>Coverage: ' + currCase.output_coverage + '</h3><br>';
+	content += '<h3>Test Case:</h3><br><p>' + currCase.output_testcase + '</p>';
+
+	transport.sendMail({
+		from: 'developer@testgen.com',
+		to: email,
+		subject: 'Testgen Report',
+		html: content
+	}, function(err, info) {
+		if (err) {
+			console.error(err);
+		} else {
+			console.log(info);
+		}
 	});
 }
 
@@ -99,41 +129,40 @@ function compileTemp(userdir, userid, res) {
 }
 
 
+
 function applyTestGen(res, userdir, userid) {
 	deleteTestCases(userdir);
-	var command = './Testgen.sh';// programs/' + userdir + '/temp.c main';// > programs/' + userdir +'/output';
+	var command = './Testgen.sh';
 	var arguments = ['programs/' + userdir + '/temp.c', 'main']
 	console.log(command);
 	var testgen = spawn(command, arguments);
+	
 	testgen.stdout.on('data', function(data) {
+		console.log('data:', data);
 		output += data;
-	}).on('close', function(close) {
-		res.send(output);
 	});
-	/**, function(err, stdout, stderr){
-		console.log('\n\n stdout: ', stdout);
-		fs.readFile('./programs/' + userdir + '/output', 'utf8', function(err, data){
-			console.log('\n\n\n\ndata:', data, '\n\n\n\n');
-			var lines = data.split('\n');
-			var coverages = lines.filter(function(line){
-				return(line.indexOf('COVERAGE') !== -1);
-			});
-			Account.findById(userid, function(err, account){
-				if(!err)
-					var length = account.cases.length;
-					var currentCase = account.cases[length-1];
-					currentCase.output_coverage = coverages[coverages.length - 1];
-					account.cases[account.cases.length-1] = currentCase;
-					account.save();
-			});
-			console.log(coverages);
-			res.send(coverages[coverages.length - 1]);
+	
+	testgen.on('exit', function(close) {
+		var lines = output.split('\n');
+		var coverages = lines.filter(function(line){
+			return(line.indexOf('COVERAGE') !== -1);
 		});
-		
-			
-	});**/
+		console.log('close:', close, '\n', output, '\n\n is empty?');
+		res.send(coverages[coverages.length - 1]);
+		Account.findById(userid, function(err, account){
+			if(!err) {
+				var length = account.cases.length;
+				var currentCase = account.cases[length - 1];
+				currentCase.output_coverage = coverages[coverages.length - 1];
+				account.cases[account.cases.length - 1] = currentCase;
+				account.save();
+
+			}
+		});
+	});
 
 }
+
 
 app.post('/filecontent', function(req, res) {
 	var user = req.user;

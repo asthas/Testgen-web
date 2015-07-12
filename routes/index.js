@@ -26,10 +26,11 @@ router.get('/register', function(req, res){
 
 router.post('/register', function(req, res){
 	var user = {
-		username: req.body.username,
-		password: req.body.password
+		username : req.body.username,
+		password : req.body.password,
+		email    : req.body.email
 	};
-	Account.register(new Account({username: user.username}), user.password, function(err, account) {
+	Account.register(new Account({username: user.username, email: user.email}), user.password, function(err, account) {
 		if(err){
 			return res.render("register", {info: "Sorry. That username already exists. Try again."});
 		}
