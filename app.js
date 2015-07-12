@@ -14,6 +14,7 @@ var app = express();
 
 var util = require('util'),
 	exec = require('child_process').exec,
+	spawn = require('child_process').spawn,
 	fs = require('fs');
 
 
@@ -100,13 +101,20 @@ function compileTemp(userdir, userid, res) {
 
 function applyTestGen(res, userdir, userid) {
 	deleteTestCases(userdir);
-	var command = './Testgen.sh programs/' + userdir + '/temp.c main';
+	var command = './Testgen.sh';// programs/' + userdir + '/temp.c main';// > programs/' + userdir +'/output';
+	var arguments = ['programs/' + userdir + '/temp.c', 'main']
 	console.log(command);
-	var testgen = exec([command], function(err, stdout, stderr){
+	var testgen = spawn(command, arguments);
+	testgen.stdout.on('data', function(data) {
+		output += data;
+	}).on('close', function(close) {
+		res.send(output);
+	});
+	/**, function(err, stdout, stderr){
 		console.log('\n\n stdout: ', stdout);
 		fs.readFile('./programs/' + userdir + '/output', 'utf8', function(err, data){
-			console.log('\n\ndata:', data);
-			var lines = stdout.split('\n');
+			console.log('\n\n\n\ndata:', data, '\n\n\n\n');
+			var lines = data.split('\n');
 			var coverages = lines.filter(function(line){
 				return(line.indexOf('COVERAGE') !== -1);
 			});
@@ -117,12 +125,13 @@ function applyTestGen(res, userdir, userid) {
 					currentCase.output_coverage = coverages[coverages.length - 1];
 					account.cases[account.cases.length-1] = currentCase;
 					account.save();
-			})
+			});
 			console.log(coverages);
 			res.send(coverages[coverages.length - 1]);
 		});
+		
 			
-	});
+	});**/
 
 }
 

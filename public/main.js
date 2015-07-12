@@ -3,21 +3,31 @@ var userfile;
 $(document).ready(function(){
 		$("#Output").hide();
 		$("#Test-case").hide();
+		$("#Path").hide();
     	$("#input-button").click(function(){
     		$("#Home").show();
         	$("#Output").hide();
         	$("#Test-case").hide();
+        	$("#Path").hide();
     	}); 
     	$("#output-button").click(function(){
     		$("#Output").show();
         	$("#Home").hide();
         	$("#Test-case").hide();
+        	$("#Path").hide();
     	});
     	$("#test-button").click(function(){
     		$("#Test-case").show();
     		$("#Home").hide();
     		$("#Output").hide();
+    		$("#Path").hide();
     	});
+    	$("#path-button").click(function(){
+    		$("#Path").show();
+    		$("#Test-case").hide();
+    		$("#Home").hide();
+    		$("#Output").hide();
+    	})
     	setUpCodeMirror('');
 	});
 
@@ -70,6 +80,6 @@ function setUpCodeMirror(value) {
 		value: value,
 		readOnly: true
 	});
-
+	document.getElementById('coverage-code').innerHTML = document.getElementById('content').innerHTML;
 }
 
