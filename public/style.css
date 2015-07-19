@@ -22,3 +22,15 @@
 	margin: 32px;
 	overflow: hidden;
 }
+
+.coverage-fully {
+	background-color: green;
+}
+
+.coverage-partially {
+	background-color: yellow;
+}
+
+.coverage-uncovered {
+	background-color: red;
+}

@@ -1,0 +1,33 @@
+body {
+	background-image: 
+    linear-gradient(
+      rgba(0, 0, 0, 0.5),
+      rgba(0, 0, 0, 0.5),
+      rgba(0, 0, 0, 0.5)
+    ),
+    url('/images/bg.jpg');
+	background-size: cover; 
+}
+
+#heading {
+	font-family: 'Bevan', cursive;
+	font-size: 108px;
+	color: #fff;
+	margin-top: 150px;
+	margin-left: 150px;
+
+}
+
+#tag-line {
+	font-family: 'Candal', sans-serif;
+	font-size: 28px;
+	color: #fff;
+	margin-top: 10px;
+	margin-left: 150px;
+	bold: 1200px;
+}
+
+#cover-buttons {
+	margin-top: 40px;
+	margin-left: 150px;
+}

@@ -1,0 +1,40 @@
+{
+        "description": [
+                {
+                        "line_number": 37,
+                        "coverage": 40,
+                        "condition": "tft",
+                        "message": "less than 50"
+                },
+                {
+                        "line_number": 44,
+                        "coverage": 40,
+                        "condition": "t",
+                        "message": "fully covered"
+                },
+                {
+                        "line_number": 48,
+                        "coverage": 40,
+                        "condition": "tf",
+                        "message": "50% covered"
+                },
+                {
+                        "line_number": 52,
+                        "coverage": 40,
+                        "condition": "ft",
+                        "message": "50% covered"
+                },
+                {
+                        "line_number": 57,
+                        "coverage": 40,
+                        "condition": "b",
+                        "message": "fully covered"
+                },
+                {
+                        "line_number": 37,
+                        "coverage": 40,
+                        "condition": "tft",
+                        "message": "more than 50% covered"
+                }
+        ]
+}

@@ -9,7 +9,8 @@ var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var nodemailer = require('nodemailer');
 var mandrillTransport = require('nodemailer-mandrill-transport');
-
+var HighlightEngine = require('./HighlightEngine');
+var HighlightData = require('./HighlightData');
 
 var routes = require('./routes/index');
 
@@ -20,14 +21,12 @@ var util = require('util'),
 	spawn = require('child_process').spawn,
 	fs = require('fs');
 
-
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-//app.use(favicon('__dirname' + './public/favicon.ico'));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
@@ -39,15 +38,10 @@ app.use(require('express-session')({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
-
-
 app.use('/', routes);
-
 app.use(express.static(path.join(__dirname, 'public')));
 
 var output = '';
-
-
 
 function deleteTestCases(userdir) {
 	exec(['rm programs/' + userdir +'/*.tc']);
@@ -58,19 +52,12 @@ function endsWithTC(file) {
 }
 
 function searchTestcaseFile(res, userdir, userid) {
-	console.log('\n\n\nuserdir', userdir);
-	console.log('\n\n\nuserid', userid);
-	var ls = exec(['ls programs/'+ userdir], function(err, stdout, stderr){
-		
+	var ls = exec(['ls programs/' + userdir], function(err, stdout, stderr){		
 		var files = stdout.split('\n');
 		var tc = files.filter(endsWithTC);
-		
-		console.log(files, tc);
 		displayTestcases(tc[0], res, userdir, userid);
 	});
 }
-
-
 
 function displayTestcases(tc, res, userdir, userid) {
 	fs.readFile('./programs/' + userdir + '/' + tc, 'utf8', function(err, data){
@@ -80,14 +67,17 @@ function displayTestcases(tc, res, userdir, userid) {
 		Account.findById(userid, function(err, account){
 			if(!err) {
 				var length = account.cases.length;
-				var currentCase = account.cases[length-1];//created a copy
-				currentCase.output_testcase = data;//augmented 
-				account.cases[account.cases.length-1] = currentCase;
-				account.save();//reflected back the changes
+				var currentCase = account.cases[length-1];				//created a copy
+				currentCase.output_testcase = data;						//augmented 
+				account.cases[account.cases.length-1] = currentCase;	//reflected back the changes
+				account.save();											//update database
 				sendEmail(account.email, currentCase);
 			}
 		});
-		res.send(data);
+		res.json({
+			data: data,
+			arguments: new HighlightEngine(HighlightData).getArguments()
+		});
 	});
 }
 
@@ -117,7 +107,6 @@ function sendEmail(email, currCase) {
 	});
 }
 
-
 function compileTemp(userdir, userid, res) {
 	var command = 'clang programs/'+ userdir +'/temp.c -o programs/' + userdir + '/temp.out';
 	console.log('\nCompile command:', command, '\n');
@@ -127,8 +116,6 @@ function compileTemp(userdir, userid, res) {
 		}
 	});
 }
-
-
 
 function applyTestGen(res, userdir, userid) {
 	deleteTestCases(userdir);
@@ -163,7 +150,6 @@ function applyTestGen(res, userdir, userid) {
 
 }
 
-
 app.post('/filecontent', function(req, res) {
 	var user = req.user;
 	var userid = user._id;
@@ -185,7 +171,6 @@ app.post('/filecontent', function(req, res) {
 		if(err)
 			console.log(err);
 		compileTemp(userdir, userid, res);
-		//applyTestGen(res, userdir, userid);
 	});
 
 	
@@ -198,21 +183,13 @@ app.get('/testCases', function(req, res){
 	searchTestcaseFile(res, userdir, userid);
 });
 
-
 var Account = require('./model/account');
 passport.use(new LocalStrategy(Account.authenticate()));
 passport.serializeUser(Account.serializeUser());
 passport.deserializeUser(Account.deserializeUser());
 
 mongoose.connect('mongodb://localhost/Testgen');
-// app.use(function(req, res, next){
-// 	var err = new Error('not found');
-// 	err.status(404);
-// 	next(err);
-// });
 	
 app.listen(3000, function() {
 	console.log('Serving on 3000');
 });
-
-module.exports = app;
