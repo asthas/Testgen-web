@@ -37,6 +37,7 @@ Makefile.features
 TODO
 Testgen
 _tags
+.DS_Store
 
 Testgen.sh
 
