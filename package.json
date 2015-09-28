@@ -1,15 +1,15 @@
 {
-  "name": "passport-local-express4",
+  "name": "Testgen-web",
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node app"
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:mjhea0/passport-local-express4.git"
+    "url": "git@github.com:asthas/Testgen-web.git"
   },
-  "author": "Michael Herman <michael@mherman.org>",
+  "author": "Astha Sharma <a@astha.me>",
   "license": "MIT",
   "dependencies": {
     "body-parser": "^1.10.2",

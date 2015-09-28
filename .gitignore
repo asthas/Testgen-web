@@ -4,6 +4,7 @@
 *.mk
 *.ml
 *.gcc
+*.dot
 *.log
 *.txt
 *.msvc
@@ -17,6 +18,7 @@ bin
 obj
 gui
 lib
+doc
 docs
 core
 install-sh
@@ -35,5 +37,7 @@ Makefile.features
 TODO
 Testgen
 _tags
+
+Testgen.sh
 
 node_modules

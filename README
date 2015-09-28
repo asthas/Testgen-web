@@ -1,44 +1,42 @@
-PREREQUISITES
----------------------------------------
-1). OCAML 4.01.0( http://caml.inria.fr/ocaml/)
-2). Z3 4.3.2 (http://z3.codeplex.com/) (z3 Folder should be inside  Testgen Folder). 
-3). Frama-c Neon (http://frama-c.com/download.html) (Frama-c library directory must have a write acess)
+#Testgen-web
 
+Testgen web acts as a web-frontend for running the testgen test suite
 
-INSTALLATION STEPS
----------------------------------------
+The backend is written in [Node.js](https://nodejs.org) using [Express.js](http://expressjs.com/) and [MongoDB](https://www.mongodb.org/)
 
-1). Run ./Testgen_install.sh <dir>
-2). cd <dir>
-2). Run ./configure 
-3). Run make
-4). Run make install
-5). cd z3/build && make examples && cd .. && cd .. (z3 Folder should be inside  Testgen Folder)
-6). Run cd gui && make --file=make_gui.mk 
-7). Run make install --file=make_gui.mk && cd ..
+The frontend uses [jQuery](https://jquery.com/) and [bootstrap](http://getbootstrap.com)
 
+##Prerequisites
 
+* Testgen cli tool
+* `clang` for compiling C source code. [To use GCC](#gcc)
+* A MongoDB instance with a database called `Testgen`
 
+##Setup
 
+* Clone the repo
 
-HOW TO USE THIS TOOL
+        git clone https://github.com/asthas/Testgen-web
 
---------------------------------------
-If you are using linux terminal use following command :
+* Setup the Testgen cli tool
 
-./Testgen.sh filename.c OR ./Testgen.sh filename.c function name
+* Copy the Testgen files inside the root of the Testgen-web folder
 
-If you are using frama-c-gui use following steps :
+* Install the node dependencies
 
-1). Open frama-c using command "frama-c-gui"
-2). In analysis tab click on analysis. It will show Testgen plugin along with the other available plugins. 
-3). Goto to the file menu and and click on option source file
-4). Add C source file
-5). The name of file and functions will be displayed on top left panel
-6). Once clicking on function name its code will appear on main window
-7). Goto the place in the code where C function is defined. Right click on it. It will show an option Show Coverage. Click on it
-8). Coverage Percentage will be displayed at console
+        npm install
 
+##Run
 
+        npm start
 
+[Navigate to port 3000](http://localhost:3000)
 
+#GCC
+
+To use the gcc compiler instead of clang, simply change `clang` in [this line](https://github.com/asthas/Testgen-web/blob/master/app.js#L111) to `gcc`
+
+Developed By
+============
+
+* Astha Sharma - <a@astha.me>
