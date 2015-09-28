@@ -10,6 +10,7 @@ The frontend uses [jQuery](https://jquery.com/) and [bootstrap](http://getbootst
 
 * Testgen cli tool
 * `clang` for compiling C source code. [To use GCC](#gcc)
+* Node (Tested with 0.10.x)
 * A MongoDB instance with a database called `Testgen`
 
 ##Setup
